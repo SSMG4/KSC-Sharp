@@ -1,0 +1,24 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Build all
+        run: dotnet build --configuration Release
+      - name: Package artifacts (placeholder)
+        run: echo "Package and upload artifacts here. Signing credentials should be stored as secrets."
+      - name: Create release (placeholder)
+        run: echo "This step can be wired to create GitHub releases and upload artifacts."
