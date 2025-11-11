@@ -1,0 +1,32 @@
+name: KSC-Sharp Windows CI
+
+on:
+  push:
+    paths:
+      - 'Windows/**'
+      - '.github/workflows/windows-ci.yml'
+  pull_request:
+    paths:
+      - 'Windows/**'
+      - '.github/workflows/windows-ci.yml'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Build solution (WindowsLauncher + Core)
+        run: dotnet build --configuration Release
+      - name: Run unit tests
+        run: dotnet test --no-build --configuration Release
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: |
+            Windows/WindowsLauncher/bin/Release/net8.0/**
+            KoroneStrap.Core/bin/Release/net8.0/**
