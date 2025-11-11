@@ -4,7 +4,7 @@
 <h1 align="center">KSC-Sharp</h1>
 
 <p align="center">
-  <i>A C#/.NET 8 port and expansion of the LittleBigDevs Team's [koroneStrap](https://github.com/LittleBigDevs/koroneStrap) bootstrapper for Korone baked with Bloxstrap's Avalonia GUI/UI and lots of improvements.</i>
+  <i>A C#/.NET 8 port and expansion of the LittleBigDevs Team's <a href="https://github.com/LittleBigDevs/koroneStrap">koroneStrap</a> bootstrapper for Korone baked with Bloxstrap's Avalonia GUI/UI and lots of improvements.</i>
 </p>
 
 <p align="center">
