@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" Name="KSC-Sharp" Language="1033" Version="0.1.0.0" Manufacturer="SSMG4" UpgradeCode="PUT-GUID-HERE">
+    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" />
+
+    <MediaTemplate />
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="KSC-Sharp" />
+      </Directory>
+    </Directory>
+
+    <ComponentGroup Id="AppComponents" Directory="INSTALLFOLDER">
+      <!-- Add files here during WiX packaging -->
+    </ComponentGroup>
+
+    <Feature Id="DefaultFeature" Level="1">
+      <ComponentGroupRef Id="AppComponents" />
+    </Feature>
+  </Product>
+</Wix>
