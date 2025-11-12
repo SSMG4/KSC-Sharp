@@ -1,3 +1,5 @@
+name: KSC-Sharp macOS CI
+
 on:
   push:
     paths:
