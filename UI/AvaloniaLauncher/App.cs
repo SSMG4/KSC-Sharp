@@ -4,7 +4,7 @@ using Avalonia.Markup.Xaml;
 
 namespace KSCSharp.AvaloniaLauncher;
 
-public class App : Application
+public partial class App : Application
 {
     public override void Initialize()
     {
@@ -15,13 +15,7 @@ public class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // Minimal window for initial scaffold; replace with Bloxstrap UI XAML
-            desktop.MainWindow = new Avalonia.Controls.Window
-            {
-                Width = 800,
-                Height = 600,
-                Title = "KSC-Sharp (Avalonia UI scaffold)"
-            };
+            desktop.MainWindow = new MainWindow();
         }
 
         base.OnFrameworkInitializationCompleted();
