@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using System;
 using System.Linq;
 using System.Threading;
@@ -18,18 +19,26 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        BtnLaunch2020.Click += BtnLaunch2020_Click;
-        BtnLaunch2021.Click += BtnLaunch2021_Click;
-        BtnFastFlags.Click += BtnFastFlags_Click;
-        BtnDownloadBootstrapper.Click += BtnDownloadBootstrapper_Click;
+        var btnLaunch2020 = this.FindControl<Button>("BtnLaunch2020");
+        var btnLaunch2021 = this.FindControl<Button>("BtnLaunch2021");
+        var btnFastFlags = this.FindControl<Button>("BtnFastFlags");
+        var btnDownloadBootstrapper = this.FindControl<Button>("BtnDownloadBootstrapper");
+
+        btnLaunch2020.Click += BtnLaunch2020_Click;
+        btnLaunch2021.Click += BtnLaunch2021_Click;
+        btnFastFlags.Click += BtnFastFlags_Click;
+        btnDownloadBootstrapper.Click += BtnDownloadBootstrapper_Click;
     }
+
+    private ProgressBar Progress => this.FindControl<ProgressBar>("DownloadProgress");
+    private TextBox Log => this.FindControl<TextBox>("LogTextBox");
 
     private void AppendLog(string text)
     {
         Dispatcher.UIThread.Post(() =>
         {
-            LogTextBox.Text += $"[{DateTime.Now:HH:mm:ss}] {text}\n";
-            LogTextBox.CaretIndex = LogTextBox.Text.Length;
+            Log.Text += $"[{DateTime.Now:HH:mm:ss}] {text}\n";
+            Log.CaretIndex = Log.Text.Length;
         });
     }
 
@@ -69,26 +78,26 @@ public partial class MainWindow : Window
     {
         var flags = _ffManager.Load();
         AppendLog($"Loaded {flags.Count} FastFlag(s).");
-        // Simple demonstration: show first 5 keys
         foreach (var kv in flags.Take(5))
-        {
             AppendLog($"FFlag: {kv.Key} = {kv.Value}");
-        }
     }
 
     private async void BtnDownloadBootstrapper_Click(object? sender, RoutedEventArgs e)
     {
         AppendLog("Starting bootstrapper download...");
-        DownloadProgress.Value = 0;
+        Progress.Value = 0;
         var dl = new BootstrapperDownloader(BootstrapperUrl, BootstrapperFile);
         var cts = new CancellationTokenSource();
         var progress = new Progress<(long downloaded, long? total)>(p =>
         {
-            if (p.total.HasValue && p.total.Value > 0)
+            Dispatcher.UIThread.Post(() =>
             {
-                var percent = Math.Min(100, (int)(p.downloaded * 100 / p.total.Value));
-                DownloadProgress.Value = percent;
-            }
+                if (p.total.HasValue && p.total.Value > 0)
+                {
+                    var percent = Math.Min(100, (int)(p.downloaded * 100 / p.total.Value));
+                    Progress.Value = percent;
+                }
+            });
         });
 
         var ok = await Task.Run(() => dl.DownloadAsync(progress, cts.Token));
