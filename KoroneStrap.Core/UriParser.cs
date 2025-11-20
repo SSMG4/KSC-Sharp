@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Web;
+using System.Net;
 
 namespace KSCSharp.Core;
 
@@ -25,7 +25,6 @@ public static class UriParser
         ["userId"] = "-userId",
     };
 
-    // Input expects something like "launchmode:Some+placeId:1234+clientversion:2018"
     public static ParsedUri Parse(string raw)
     {
         var parsed = new ParsedUri();
@@ -51,14 +50,11 @@ public static class UriParser
                 continue;
 
             if (key == "placelauncherurl")
-            {
-                val = HttpUtility.UrlDecode(val);
-            }
+                val = WebUtility.UrlDecode(val);
 
             var prefix = UriKeyArgMap[key];
             if (key == "launchmode")
             {
-                // launchmode special: add negotiation URL as in Python
                 argList.Add($"{prefix}{val}");
                 argList.Add("-a");
                 argList.Add("https://www.pekora.zip/Login/Negotiate.ashx");
