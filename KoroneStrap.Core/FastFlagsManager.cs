@@ -26,11 +26,28 @@ public class FastFlagsManager
         {
             var json = File.ReadAllText(_flagsFile);
             if (string.IsNullOrWhiteSpace(json)) return new();
-            return JsonSerializer.Deserialize<Dictionary<string, object>>(json) ?? new();
+
+            using var doc = JsonDocument.Parse(json);
+            var result = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            foreach (var prop in doc.RootElement.EnumerateObject())
+            {
+                var v = prop.Value;
+                object normalized = v.ValueKind switch
+                {
+                    JsonValueKind.True => true,
+                    JsonValueKind.False => false,
+                    JsonValueKind.Number when v.TryGetInt64(out var i) => i,
+                    JsonValueKind.Number when v.TryGetDouble(out var d) => d,
+                    JsonValueKind.String => v.GetString() ?? "",
+                    _ => v.ToString()
+                };
+                result[prop.Name] = normalized;
+            }
+            return result;
         }
-        catch (JsonException)
+        catch (Exception ex)
         {
-            Console.Error.WriteLine("[!] Error reading fastFlags.json - invalid JSON format");
+            Console.Error.WriteLine($"[!] Error reading fastFlags.json: {ex.Message}");
             return new();
         }
     }
@@ -41,7 +58,11 @@ public class FastFlagsManager
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
             var json = JsonSerializer.Serialize(flags, options);
-            File.WriteAllText(_flagsFile, json);
+            var tmp = _flagsFile + ".tmp";
+            File.WriteAllText(tmp, json);
+            if (File.Exists(_flagsFile))
+                File.Copy(_flagsFile, _flagsFile + ".bak", overwrite: true);
+            File.Move(tmp, _flagsFile, overwrite: true);
             Console.WriteLine("[*] FastFlags saved successfully!");
         }
         catch (Exception ex)
@@ -50,7 +71,6 @@ public class FastFlagsManager
         }
     }
 
-    // Helper to auto-convert string input to bool/int/float/string
     public static object AutoDetectValue(string value)
     {
         if (string.IsNullOrWhiteSpace(value)) return value;
