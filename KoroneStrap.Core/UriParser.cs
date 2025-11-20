@@ -6,9 +6,9 @@ namespace KSCSharp.Core;
 
 public class ParsedUri
 {
-    public List<string> Args { get; init; } = new();
-    public string ArgsString { get; init; } = string.Empty;
-    public string Year { get; init; } = "2017L";
+    public List<string> Args { get; set; } = new();
+    public string ArgsString { get; set; } = string.Empty;
+    public string Year { get; set; } = "2017L";
 }
 
 public static class UriParser
@@ -25,6 +25,7 @@ public static class UriParser
         ["userId"] = "-userId",
     };
 
+    // Input expects something like "launchmode:Some+placeId:1234+clientversion:2018"
     public static ParsedUri Parse(string raw)
     {
         var parsed = new ParsedUri();
