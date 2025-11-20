@@ -6,12 +6,14 @@ on:
       - 'Windows/**'
       - 'UI/AvaloniaLauncher/**'
       - 'KoroneStrap.Core/**'
+      - 'KoroneStrap.Core.Tests/**'
       - '.github/workflows/windows-ci.yml'
   pull_request:
     paths:
       - 'Windows/**'
       - 'UI/AvaloniaLauncher/**'
       - 'KoroneStrap.Core/**'
+      - 'KoroneStrap.Core.Tests/**'
       - '.github/workflows/windows-ci.yml'
 
 jobs:
@@ -28,16 +30,16 @@ jobs:
       - name: Restore
         run: dotnet restore KSC-Sharp.sln
 
-      - name: Build
+      - name: Build solution
         run: dotnet build KSC-Sharp.sln --configuration Release --no-restore
 
-      - name: Test
-        run: dotnet test KoroneStrap.Core.Tests/KoroneStrap.Core.Tests.csproj --configuration Release --no-build
+      - name: Run tests
+        run: dotnet test KoroneStrap.Core.Tests/KoroneStrap.Core.Tests.csproj --configuration Release --verbosity normal
 
       - name: Publish Windows Launcher
         run: dotnet publish Windows/WindowsLauncher/WindowsLauncher.csproj -c Release -r win-x64 --self-contained false -o dist/win
 
-      - name: Publish Avalonia UI (optional Windows run)
+      - name: Publish Avalonia UI
         run: dotnet publish UI/AvaloniaLauncher/AvaloniaLauncher.csproj -c Release -r win-x64 --self-contained false -o dist/win-ui
 
       - name: Upload artifacts
