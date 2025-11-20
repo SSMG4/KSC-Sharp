@@ -4,6 +4,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using KSCSharp.Core;
+#if NET8_0_WINDOWS
+using Microsoft.Win32;
+#endif
+
+// Alias to avoid conflict with System.UriParser
+using CoreUriParser = KSCSharp.Core.UriParser;
 
 namespace KSCSharp.WindowsLauncher;
 
@@ -22,7 +28,7 @@ class Program
             var raw = args[1];
             if (raw.StartsWith("pekora-player://", StringComparison.OrdinalIgnoreCase))
                 raw = raw.Replace("pekora-player://", "");
-            var parsed = UriParser.Parse(raw);
+            var parsed = CoreUriParser.Parse(raw);
             Console.WriteLine($"Parsed client version: {parsed.Year}");
             Console.WriteLine($"Args: {parsed.ArgsString}");
             return 0;
@@ -30,7 +36,7 @@ class Program
 
         if (args.Length > 0 && args[0].StartsWith("pekora-player://", StringComparison.OrdinalIgnoreCase))
         {
-            var parsed = UriParser.Parse(args[0].Replace("pekora-player://", ""));
+            var parsed = CoreUriParser.Parse(args[0].Replace("pekora-player://", ""));
             Console.WriteLine($"Parsed client version: {parsed.Year}");
             Console.WriteLine($"Args: {parsed.ArgsString}");
             return 0;
@@ -44,8 +50,8 @@ class Program
             Console.WriteLine("2 - Launch 2021");
             Console.WriteLine("3 - Set FastFlags");
             Console.WriteLine("4 - Download/Update Bootstrapper");
-            Console.WriteLine("5 - Register URI scheme (per-user)");
-            Console.WriteLine("6 - Unregister URI scheme (per-user)");
+            Console.WriteLine("5 - Register URI scheme (Windows only)");
+            Console.WriteLine("6 - Unregister URI scheme (Windows only)");
             Console.WriteLine("0 - Exit");
             Console.Write("> ");
             var choice = Console.ReadLine()?.Trim();
@@ -140,19 +146,19 @@ class Program
         Console.WriteLine(ok ? "[*] Download finished." : "[!] Download failed.");
     }
 
-    // Per-user URI scheme registration for pekora-player://
     static void RegisterUriScheme()
     {
+#if NET8_0_WINDOWS
         try
         {
             var exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName ?? "WindowsLauncher.exe";
             var commandValue = $"\"{exePath}\" --uri \"%1\"";
 
-            using var baseKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(@"Software\Classes\pekora-player");
-            baseKey?.SetValue("URL Protocol", "", Microsoft.Win32.RegistryValueKind.String);
+            using var baseKey = Registry.CurrentUser.CreateSubKey(@"Software\Classes\pekora-player");
+            baseKey?.SetValue("URL Protocol", "", RegistryValueKind.String);
 
-            using var shellKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(@"Software\Classes\pekora-player\shell\open\command");
-            shellKey?.SetValue("", commandValue, Microsoft.Win32.RegistryValueKind.String);
+            using var shellKey = Registry.CurrentUser.CreateSubKey(@"Software\Classes\pekora-player\shell\open\command");
+            shellKey?.SetValue("", commandValue, RegistryValueKind.String);
 
             Console.WriteLine("[*] Registered URI scheme: pekora-player://");
         }
@@ -160,18 +166,25 @@ class Program
         {
             Console.WriteLine($"[!] Failed to register URI scheme: {ex.Message}");
         }
+#else
+        Console.WriteLine("[!] URI scheme registration is only supported on Windows.");
+#endif
     }
 
     static void UnregisterUriScheme()
     {
+#if NET8_0_WINDOWS
         try
         {
-            Microsoft.Win32.Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\pekora-player", throwOnMissingSubKey: false);
+            Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\pekora-player", throwOnMissingSubKey: false);
             Console.WriteLine("[*] Unregistered URI scheme: pekora-player://");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[!] Failed to unregister URI scheme: {ex.Message}");
         }
+#else
+        Console.WriteLine("[!] URI scheme unregistration is only supported on Windows.");
+#endif
     }
 }
