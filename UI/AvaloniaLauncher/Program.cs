@@ -1,20 +1,19 @@
 using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.ReactiveUI;
-using System;
 
 namespace KSCSharp.AvaloniaLauncher;
 
-class Program
+public static class Program
 {
-    // Basic Avalonia app bootstrap. Replace with the Bloxstrap UI MainWindow later.
+    // Basic Avalonia app bootstrap. Will host Bloxstrap-styled UI.
     public static void Main(string[] args)
     {
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 
     public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
+        => AppBuilder
+            .Configure<App>()
             .UsePlatformDetect()
             .LogToTrace()
             .UseReactiveUI();
