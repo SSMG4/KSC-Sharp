@@ -2,23 +2,67 @@ name: Manual Release
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 0.1.0)'
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     environment: release
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - name: Build all
-        run: dotnet build --configuration Release
-      - name: Package artifacts (placeholder)
-        run: echo "Package and upload artifacts here. Signing credentials should be stored as secrets."
-      - name: Create release (placeholder)
-        run: echo "This step can be wired to create GitHub releases and upload artifacts."
+
+      - name: Set version file
+        run: echo "${{ inputs.version }}" > VERSION.txt
+
+      - name: Restore
+        run: dotnet restore KSC-Sharp.sln
+
+      - name: Build
+        run: dotnet build KSC-Sharp.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test KoroneStrap.Core.Tests/KoroneStrap.Core.Tests.csproj --configuration Release --no-build
+
+      - name: Publish Windows Launcher
+        run: dotnet publish Windows/WindowsLauncher/WindowsLauncher.csproj -c Release -r win-x64 --self-contained false -o dist/win
+
+      - name: Publish Avalonia UI
+        run: dotnet publish UI/AvaloniaLauncher/AvaloniaLauncher.csproj -c Release -r win-x64 --self-contained false -o dist/win-ui
+
+      - name: Package ZIPs
+        run: |
+          powershell Compress-Archive -Path dist/win/* -DestinationPath dist/KSC-Sharp-WindowsLauncher-${{ inputs.version }}.zip
+          powershell Compress-Archive -Path dist/win-ui/* -DestinationPath dist/KSC-Sharp-AvaloniaUI-${{ inputs.version }}.zip
+
+      - name: Generate checksums
+        shell: pwsh
+        run: |
+          Get-FileHash dist/KSC-Sharp-WindowsLauncher-${{ inputs.version }}.zip -Algorithm SHA256 | Format-List > dist/KSC-Sharp-WindowsLauncher-${{ inputs.version }}.sha256.txt
+          Get-FileHash dist/KSC-Sharp-AvaloniaUI-${{ inputs.version }}.zip -Algorithm SHA256 | Format-List > dist/KSC-Sharp-AvaloniaUI-${{ inputs.version }}.sha256.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: KSC-Sharp v${{ inputs.version }}
+          draft: false
+          prerelease: false
+          files: |
+            dist/KSC-Sharp-WindowsLauncher-${{ inputs.version }}.zip
+            dist/KSC-Sharp-WindowsLauncher-${{ inputs.version }}.sha256.txt
+            dist/KSC-Sharp-AvaloniaUI-${{ inputs.version }}.zip
+            dist/KSC-Sharp-AvaloniaUI-${{ inputs.version }}.sha256.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
