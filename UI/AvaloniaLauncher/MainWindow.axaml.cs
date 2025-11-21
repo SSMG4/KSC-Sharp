@@ -24,14 +24,14 @@ public partial class MainWindow : Window
         var btnFastFlags = this.FindControl<Button>("BtnFastFlags");
         var btnDownloadBootstrapper = this.FindControl<Button>("BtnDownloadBootstrapper");
 
-        btnLaunch2020.Click += BtnLaunch2020_Click;
-        btnLaunch2021.Click += BtnLaunch2021_Click;
-        btnFastFlags.Click += BtnFastFlags_Click;
-        btnDownloadBootstrapper.Click += BtnDownloadBootstrapper_Click;
+        btnLaunch2020!.Click += BtnLaunch2020_Click;
+        btnLaunch2021!.Click += BtnLaunch2021_Click;
+        btnFastFlags!.Click += BtnFastFlags_Click;
+        btnDownloadBootstrapper!.Click += BtnDownloadBootstrapper_Click;
     }
 
-    private ProgressBar Progress => this.FindControl<ProgressBar>("DownloadProgress");
-    private TextBox Log => this.FindControl<TextBox>("LogTextBox");
+    private ProgressBar Progress => this.FindControl<ProgressBar>("DownloadProgress")!;
+    private TextBox Log => this.FindControl<TextBox>("LogTextBox")!;
 
     private void AppendLog(string text)
     {
